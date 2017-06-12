@@ -15,7 +15,7 @@ x_scale = 1.0
 
 # Training
 epoch_pre_train = 1001
-epocs_train = 10001
+epocs_train = 100001
 batch_size = 32
 
 # Learning Rate
