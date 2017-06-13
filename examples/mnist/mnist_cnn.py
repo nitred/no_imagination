@@ -99,9 +99,9 @@ class CNN(object):
             batch_x, batch_y = self.mnist_data.train.next_batch(batch_size)
             self.sess.run(self.train_step, feed_dict={self.x: batch_x, self.y: batch_y, self.keep_prob: keep_prob})
             if i % summary_epochs == 0:
-                print(self.sess.run(self.accuracy, feed_dict={self.x: batch_x,
-                                                              self.y: batch_y,
-                                                              self.keep_prob: keep_prob}))
+                print(self.sess.run(self.accuracy, feed_dict={self.x: self.mnist_data.test.images,
+                                                              self.y: self.mnist_data.test.labels,
+                                                              self.keep_prob: 1.0}))
 
 
 if __name__ == "__main__":
