@@ -10,6 +10,8 @@ from pylogging import HandlerType, setup_logger
 
 # DATA
 Z_DIM = 2
+Z_MUTLIVARIATE_COV = np.diag(np.ones(Z_DIM))
+Z_MUTLIVARIATE_MEAN = np.zeros(Z_DIM)
 x_loc = -2
 x_scale = 1.0
 
@@ -26,7 +28,8 @@ decay_staircase = False
 
 
 def sample_z(n):
-    return np.random.rand(n, Z_DIM)  # 2D uniform random (Does so much better than 1D)
+    # return np.random.rand(n, Z_DIM)  # 2D uniform random (Does so much better than 1D)
+    return np.random.multivariate_normal(mean=Z_MUTLIVARIATE_MEAN, cov=Z_MUTLIVARIATE_COV, size=n)
 
 
 def sample_x(n):
