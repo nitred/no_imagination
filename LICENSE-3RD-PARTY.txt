@@ -6,6 +6,11 @@ No Imagination relies on third-party software for many functionalities. Their re
     * https://github.com/ansrivas/pylogging
     * MIT License
 
+* Keras-MNIST-GAN
+    * Copyright (c) 2017 Zackory Erickson
+    * https://github.com/Zackory/Keras-MNIST-GAN
+    * MIT License
+
 
 
 # Third Party Libraries with MIT License (MIT)
@@ -13,6 +18,7 @@ No Imagination relies on third-party software for many functionalities. Their re
                         The MIT License (MIT)
         Applies to:
         - pylogging, Copyright (c) 2016 Ankur Srivastava
+        - Keras-MNIST-GAN, Copyright (c) 2017 Zackory Erickson
 -----------------------------------------------------------------------------
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -3,6 +3,7 @@
 import os
 
 import tensorflow as tf
+from no_imagination.utils import get_project_directory
 from tensorflow.examples.tutorials.mnist import input_data
 
 
@@ -11,7 +12,7 @@ class CNN(object):
 
     def __init__(self):
         """."""
-        mnist_data_dir = os.path.join(os.path.dirname(__file__), "MNIST_DATASET")
+        mnist_data_dir = get_project_directory("mnist", "dataset")
         self.mnist_data = input_data.read_data_sets(mnist_data_dir, one_hot=True)
         self.__build_model()
         self.__build_accuracy_computation()
@@ -93,7 +94,7 @@ class CNN(object):
             self.sess = tf.Session(graph=self.g)
             self.sess.run(tf.global_variables_initializer())
 
-    def run(self, epochs=1000, batch_size=100, keep_prob=0.5, summary_epochs=50):
+    def run(self, epochs=20000, batch_size=50, keep_prob=0.5, summary_epochs=500):
         """."""
         for i in range(epochs):
             batch_x, batch_y = self.mnist_data.train.next_batch(batch_size)
@@ -106,4 +107,4 @@ class CNN(object):
 
 if __name__ == "__main__":
     mnist_cnn = CNN()
-    mnist_cnn.run(epochs=300, batch_size=100, summary_epochs=50)
+    mnist_cnn.run(epochs=20000, batch_size=50, summary_epochs=500)
