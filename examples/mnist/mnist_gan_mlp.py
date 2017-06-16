@@ -2,6 +2,7 @@
 
 import logging
 import os
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -101,7 +102,7 @@ class GAN_MLP(object):
             self.vars_G = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="G")
             self.vars_D = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="D")
 
-            optimizer = tf.train.AdamOptimizer(learning_rate=0.0001)
+            optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5)
 
             self.opt_G = optimizer.minimize(loss=self.loss_G, var_list=self.vars_G)
             self.opt_D = optimizer.minimize(loss=self.loss_D, var_list=self.vars_D)
@@ -149,10 +150,13 @@ class GAN_MLP(object):
 
     def run(self, epochs, batch_size, summary_epochs=100):
         """."""
+        start_time = time.time()
         for i in range(epochs):
-            for j in range(60000 // batch_size):
+            start_time = time.time()
+            for j in range(5):
                 # Train discriminator
                 batch_x, _ = self.get_data_batches(batch_size)
+                batch_x = 2 * batch_x - 1
                 batch_z = self.get_noise_batches(batch_size)
                 self.sess.run([self.opt_D], feed_dict={self.x: batch_x, self.z: batch_z})
 
@@ -168,8 +172,10 @@ class GAN_MLP(object):
                                                        feed_dict={self.x: batch_x, self.z: batch_z})
                 self.plot_losses(epoch=i, loss_G=loss_G, loss_D=loss_D)
                 self.plot_fake_data(epoch=i, random_seed=1)
-                logger.info(
-                    "Epoch: {:4d} --- Loss_G: {:0.4f} --- Loss_D: {:0.4f} -- D1: {} --- D2: {}".format(i, loss_G, loss_D, D1, D2))
+                time_diff = time.time() - start_time
+                start_time = time.time()
+                logger.info("Epoch: {:4d} - Loss_G: {:0.4f} - Loss_D: {:0.4f} - Time: {:0.1f} - D1: {} -- D2: {}"
+                            .format(i, loss_G, loss_D, time_diff, D1[0], D2[0]))
 
 
 if __name__ == "__main__":
@@ -180,4 +186,4 @@ if __name__ == "__main__":
                  max_file_size_bytes=100000,
                  change_log_level=None)
     mnist_gan_mlp = GAN_MLP(z_dim=10)
-    mnist_gan_mlp.run(epochs=10, batch_size=128, summary_epochs=1)
+    mnist_gan_mlp.run(epochs=100, batch_size=128, summary_epochs=1)
