@@ -7,7 +7,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from no_imagination.utils import get_project_directory
+from no_imagination.utils import get_current_timestamp, get_project_directory
 from pylogging import HandlerType, setup_logger
 from tensorflow.examples.tutorials.mnist import input_data
 
@@ -30,6 +30,8 @@ class GAN_MLP(object):
         self.z_mean = np.zeros(self.z_dim)
         self.z_cov = np.diag(np.ones(self.z_dim))
         self.x_dim = 784
+        self.real_prob_val = 0.9
+        self.fake_prob_val = 0.1
         self.__build_model()
         self.__start_session()
 
@@ -86,6 +88,7 @@ class GAN_MLP(object):
         self.g = tf.Graph()
         with self.g.as_default():
             self.x = tf.placeholder(tf.float32, shape=[None, self.x_dim])
+            self.real_prob = tf.placeholder(tf.float32, shape=[None, 1])
             self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim])
 
             with tf.variable_scope("G"):
@@ -96,26 +99,26 @@ class GAN_MLP(object):
                 scope.reuse_variables()
                 self.D2 = self.__build_discriminator(self.G, input_dim=self.x_dim, output_dim=1)
 
+            self.loss_D_pre = tf.reduce_mean(tf.square(self.D1 - self.real_prob))
             self.loss_G = tf.reduce_mean(-tf.log(self.D2))
             self.loss_D = tf.reduce_mean(-tf.log(self.D1) - tf.log(1 - self.D2))
 
             self.vars_G = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="G")
             self.vars_D = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="D")
 
-            optimizer = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5)
+            optimizer_D_pre = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5)
+            optimizer_G = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5)
+            optimizer_D = tf.train.AdamOptimizer(learning_rate=0.0002, beta1=0.5)
 
-            self.opt_G = optimizer.minimize(loss=self.loss_G, var_list=self.vars_G)
-            self.opt_D = optimizer.minimize(loss=self.loss_D, var_list=self.vars_D)
+            self.opt_D_pre = optimizer_D_pre.minimize(loss=self.loss_D_pre, var_list=self.vars_D)
+            self.opt_G = optimizer_G.minimize(loss=self.loss_G, var_list=self.vars_G)
+            self.opt_D = optimizer_D.minimize(loss=self.loss_D, var_list=self.vars_D)
 
     def __start_session(self):
         """."""
         with self.g.as_default():
             self.sess = tf.Session(graph=self.g)
             self.sess.run(tf.global_variables_initializer())
-
-    def get_data_batches(self, batch_size):
-        """."""
-        return self.mnist_data.train.next_batch(batch_size)
 
     def get_noise_batches(self, batch_size, random_seed=None):
         """."""
@@ -131,6 +134,10 @@ class GAN_MLP(object):
         batch_fy = np.zeros(batch_size)
         return (batch_fx, batch_fy)
 
+    def get_data_batches(self, batch_size):
+        """."""
+        return self.mnist_data.train.next_batch(batch_size)
+
     def plot_losses(self, epoch, loss_G, loss_D):
         """."""
         pass
@@ -145,20 +152,59 @@ class GAN_MLP(object):
             plt.imshow(batch_fx[i], interpolation='nearest', cmap='gray_r')
             plt.axis('off')
         plt.tight_layout()
-        img_dir = get_project_directory("mnist", "results")
+        img_dir = get_project_directory("mnist", "results", self.start_timestamp)
         plt.savefig(os.path.join(img_dir, "mnist_gan_mlp_{}.png".format(epoch)))
+        plt.close()
+
+    def pre_train(self, batch_size):
+        """."""
+        # Train on real mini batch
+        batch_x, _ = self.get_data_batches(batch_size)
+        batch_real_prob = np.ones([batch_size, 1]) * self.real_prob_val
+        self.sess.run(self.opt_D_pre, feed_dict={self.x: batch_x, self.real_prob: batch_real_prob})
+
+        # Train on fake mini batch
+        batch_fx, _ = self.get_fake_batches(batch_size)
+        batch_real_prob = np.ones([batch_size, 1]) * self.fake_prob_val
+        self.sess.run(self.opt_D_pre, feed_dict={self.x: batch_fx, self.real_prob: batch_real_prob})
 
     def run(self, epochs, batch_size, summary_epochs=100):
         """."""
+        self.start_timestamp = get_current_timestamp()
         start_time = time.time()
+
         for i in range(epochs):
-            start_time = time.time()
-            for j in range(5):
-                # Train discriminator
-                batch_x, _ = self.get_data_batches(batch_size)
-                batch_x = 2 * batch_x - 1
-                batch_z = self.get_noise_batches(batch_size)
-                self.sess.run([self.opt_D], feed_dict={self.x: batch_x, self.z: batch_z})
+            # pre train
+            if i == 0:
+                logger.info("PRE-TRAINING")
+                for j in range(60000 // batch_size):
+                    self.pre_train(batch_size)
+
+                    if j % 5 == 0:
+                        # real behavior
+                        batch_x, _ = self.get_data_batches(batch_size)
+                        batch_real_prob = np.ones([batch_size, 1]) * self.real_prob_val
+                        real_loss_D_pre, real_D1 = self.sess.run([self.loss_D_pre, self.D1],
+                                                                 feed_dict={self.x: batch_x, self.real_prob: batch_real_prob})
+                        # fake behavior
+                        batch_fx, _ = self.get_fake_batches(batch_size)
+                        batch_real_prob = np.ones([batch_size, 1]) * self.fake_prob_val
+                        fake_loss_D_pre, fake_D1 = self.sess.run([self.loss_D_pre, self.D1],
+                                                                 feed_dict={self.x: batch_fx, self.real_prob: batch_real_prob})
+
+                        time_diff = time.time() - start_time
+                        start_time = time.time()
+
+                        logger.info("PreT-Batch: {:4d} - Real_D: {} - Real_Loss: {:0.4f} - Fake_D: {} - Fake_Loss: {:0.4f} - Time: {:0.1f}"
+                                    .format(j, real_D1[0], real_loss_D_pre, fake_D1[0], fake_loss_D_pre, time_diff))
+
+            for j in range(1):
+                # # Train discriminator
+                # batch_x, _ = self.get_data_batches(batch_size)
+                # batch_x = 2 * batch_x - 1
+                # batch_z = self.get_noise_batches(batch_size)
+                # self.sess.run([self.opt_D], feed_dict={self.x: batch_x, self.z: batch_z})
+                self.pre_train(batch_size)
 
                 if j == 0:
                     # Train generator
@@ -183,7 +229,7 @@ if __name__ == "__main__":
                  file_handler_type=HandlerType.TIME_ROTATING_FILE_HANDLER,
                  allow_console_logging=True,
                  allow_file_logging=True,
-                 max_file_size_bytes=100000,
+                 max_file_size_bytes=10000,
                  change_log_level=None)
     mnist_gan_mlp = GAN_MLP(z_dim=10)
-    mnist_gan_mlp.run(epochs=100, batch_size=128, summary_epochs=1)
+    mnist_gan_mlp.run(epochs=1000, batch_size=64, summary_epochs=1)

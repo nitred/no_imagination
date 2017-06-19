@@ -1,5 +1,6 @@
 """File containing basic utility functions."""
 
+import datetime
 import logging
 import os
 
@@ -23,3 +24,8 @@ def get_project_directory(*subdirs):
         os.makedirs(project_dir)
 
     return project_dir
+
+
+def get_current_timestamp():
+    """Return current timestamp in string format YYYY-MM-DD HH:MM:SS."""
+    return datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d %H:%M:%S")
