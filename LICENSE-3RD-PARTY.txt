@@ -11,6 +11,11 @@ No Imagination relies on third-party software for many functionalities. Their re
     * https://github.com/Zackory/Keras-MNIST-GAN
     * MIT License
 
+* angular2-flask
+    * Copyright (c) 2017 Ankur Srivastava
+    * https://github.com/ansrivas/angular2-flask
+    * MIT License
+
 
 
 # Third Party Libraries with MIT License (MIT)
@@ -19,6 +24,7 @@ No Imagination relies on third-party software for many functionalities. Their re
         Applies to:
         - pylogging, Copyright (c) 2016 Ankur Srivastava
         - Keras-MNIST-GAN, Copyright (c) 2017 Zackory Erickson
+        - angular2-flask, Copyright (c) 2017 Ankur Srivastava
 -----------------------------------------------------------------------------
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

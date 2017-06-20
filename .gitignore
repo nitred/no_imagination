@@ -1,3 +1,6 @@
+# Ignore logs
+*logs
+
 # Ignore datasets
 *dataset
 *DATASET
