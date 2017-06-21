@@ -14,7 +14,11 @@ Some parts of the model architecture and code used in this section were taken fr
 - The discriminator scores which are supposed to be between 0 and 1, always show scores which are very close to zero and move more close to zero as training takes place. This leads to loss being negative infinity and eventual NaN. Therefore it might be a good idea to pre-train the discriminator.
 
 ## v2
-- Pre-training the discriminator with seperate (non mixed) real and fake mini batches.
+* pre-training (with fake vs real)
+* Pre-training the discriminator with seperate (non mixed) real and fake mini batches.
+* Separate optimizers for pretrain, generation, discrimination
+* training of discriminator ONLY with labels i.e. fake vs real i.e. using opt_D_pre
+* training of generator with the usual opt_G
 
 
 # To Experiment

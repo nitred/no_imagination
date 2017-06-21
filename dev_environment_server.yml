@@ -17,3 +17,4 @@ dependencies:
     - gunicorn==19.7.1
     - tensorflow-gpu==1.1.0
     - circus==0.14.0
+    - tqdm

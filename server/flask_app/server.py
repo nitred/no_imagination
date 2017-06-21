@@ -3,17 +3,54 @@
 import json
 import logging
 import traceback
-from no_imagination.generate import GenerateMnist
+from no_imagination.generate import GenerateMnist, GenerateFlowers
 
 from flask import Response, redirect, request, send_from_directory
 from flask_security import auth_token_required, utils
 # from gevent.wsgi import WSGIServer
+from pprint import pprint, pformat
 
 from .app_utils import html_codes, token_login
 from .factory import create_app, create_user
+import gc
 
-generate_mnist = GenerateMnist()
+
+is_mnist = False
+is_flowers = False
+generate_mnist = None
+generate_flowers = None
 logger = logging.getLogger(__name__)
+
+def activate_model(model_name):
+    global is_mnist
+    global is_flowers
+    global generate_mnist
+    global generate_flowers
+    logger.info("Activating Model: {}".format(model_name))
+    if model_name == "mnist":
+        if is_flowers:
+            is_flowers = False
+            generate_flowers.close()
+            del generate_flowers
+            gc.collect()
+            generate_flowers = None
+
+        if not is_mnist:
+            is_mnist = True
+            generate_mnist = GenerateMnist()
+
+    else:
+        if is_mnist:
+            is_mnist = False
+            generate_mnist.close()
+            del generate_mnist
+            gc.collect()
+            generate_mnist = None
+
+        if not is_flowers:
+            is_flowers = True
+            generate_flowers = GenerateFlowers()
+
 app = create_app()
 
 
@@ -34,6 +71,36 @@ def root():
 def send_static(path):
     logger.info("route: {}".format(path))
     return send_from_directory('static', path)
+
+
+@app.route('/api/post/<path:path>', methods=['POST', 'GET'])
+def post_form(path):
+    result = request.form
+    result = json.dumps(result)
+    result = json.loads(result)
+    logger.info("======================================")
+    logger.info(pformat(result))
+    logger.info("--------------------------------------")
+    text_description = result['text_description']
+
+    if path == "mnist":
+        logger.info("mnist")
+        logger.info("TEXT Description: {}".format(text_description))
+        activate_model("mnist")
+        image_name = generate_mnist.generate(text_description)
+
+    elif path == "flowers":
+        logger.info("flowers")
+        logger.info("TEXT Description: {}".format(text_description))
+        activate_model("flowers")
+        if text_description is None or text_description == "":
+            text_description = "red flower"
+        image_name = generate_flowers.generate(text_description)
+
+    else:
+        image_name = "not_found"
+
+    return redirect("http://207.154.233.16:4444/img/{}/{}".format(path, image_name), code=302)
 
 
 @app.route('/generate/<path:path>')
