@@ -100,7 +100,7 @@ def post_form(path):
     else:
         image_name = "not_found"
 
-    return redirect("http://207.154.233.16:4444/img/{}/{}".format(path, image_name), code=302)
+    return redirect("http://imagination.nitred.com/img/{}/{}".format(path, image_name), code=302)
 
 
 @app.route('/generate/<path:path>')
@@ -118,7 +118,7 @@ def generate_images(path):
     else:
         image_name = "not_found"
 
-    return redirect("http://207.154.233.16:4444/img/{}/{}/".format(path, image_name), code=302)
+    return redirect("http://imagination.nitred.com/img/{}/{}/".format(path, image_name), code=302)
 
 
 @app.route('/img/<path:path>')
