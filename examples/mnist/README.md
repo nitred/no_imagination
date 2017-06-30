@@ -2,6 +2,13 @@
 This README is for the sub section of the `no_imagination` project pertaining specifically to the MNIST dataset.
 
 # Sources & Acknowledgements
+
+## Research Papers
+* [Generative Adversarial Networks](https://arxiv.org/abs/1406.2661)
+* [Conditional Generative Adversarial Nets](https://arxiv.org/abs/1411.1784)
+* [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/abs/1511.06434)
+
+## Code
 Some parts of the model architecture and code used in this section were taken from the following repositories and websites.
 * https://github.com/gtoubassi/mnist-gan
 * https://github.com/Zackory/Keras-MNIST-GAN (License in LICENSE-3RD-PARTY.txt)
@@ -28,7 +35,7 @@ Some parts of the model architecture and code used in this section were taken fr
 # v4
 * Conditional GAN are the best :)
 * Different y for D and G, probably similar to original GAN paper
-* Basic Normalization
+* Basic Normalization and scaling of images between -1 and 1
 
 
 
