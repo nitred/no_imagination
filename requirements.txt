@@ -2,3 +2,4 @@ tensorflow-gpu==1.1.0
 circus==0.14.0
 future==0.16.0
 git+https://github.com/ansrivas/pylogging.git
+numpy==1.13.0

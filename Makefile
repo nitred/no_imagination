@@ -12,11 +12,8 @@ ENV_BIN = "$(ENV_DIR)/bin"
 ENV_PIP = "$(ENV_BIN)/pip"
 ENV_PYTHON = "$(ENV_BIN)/python"
 
-
-auto_recreate_env:
-	$(ROOT_CONDA) env create --force -f dev_environment.yml
-
-auto_reinstall_project:
+recreate_env:
+	$(ROOT_CONDA) env create --force -f dev_environment.yml && \
 	$(ENV_PIP) uninstall -y $(PROJECT_NAME) || true && \
 	$(ENV_PIP) install -e . --upgrade
 

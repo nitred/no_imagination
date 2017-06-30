@@ -20,6 +20,17 @@ Some parts of the model architecture and code used in this section were taken fr
 * training of discriminator ONLY with labels i.e. fake vs real i.e. using opt_D_pre
 * training of generator with the usual opt_G
 
+# v3
+* Conditional GAN are the best :)
+* No normalization
+* Different y for D and G
+
+# v4
+* Conditional GAN are the best :)
+* Different y for D and G, probably similar to original GAN paper
+* Basic Normalization
+
+
 
 # To Experiment
 * Dimensionality of noise
