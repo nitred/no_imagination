@@ -1,25 +1,25 @@
 """Entry point for the server application."""
 
+import gc
 import json
 import logging
 import traceback
-from no_imagination.generate import GenerateMnist, GenerateFlowers
+# from gevent.wsgi import WSGIServer
+from pprint import pformat, pprint
 
 from flask import Response, redirect, request, send_from_directory
 from flask_security import auth_token_required, utils
-# from gevent.wsgi import WSGIServer
-from pprint import pprint, pformat
+from no_imagination.generate import GenerateFlowers, GenerateMnist
 
 from .app_utils import html_codes, token_login
 from .factory import create_app, create_user
-import gc
-
 
 is_mnist = False
 is_flowers = False
 generate_mnist = None
 generate_flowers = None
 logger = logging.getLogger(__name__)
+
 
 def activate_model(model_name):
     global is_mnist
@@ -100,7 +100,7 @@ def post_form(path):
     else:
         image_name = "not_found"
 
-    return redirect("http://207.154.233.16:4444/img/{}/{}".format(path, image_name), code=302)
+    return redirect("http://imagination.nitred.com/img/{}/{}".format(path, image_name), code=302)
 
 
 @app.route('/generate/<path:path>')
@@ -118,7 +118,7 @@ def generate_images(path):
     else:
         image_name = "not_found"
 
-    return redirect("http://207.154.233.16:4444/img/{}/{}/".format(path, image_name), code=302)
+    return redirect("http://imagination.nitred.com/img/{}/{}/".format(path, image_name), code=302)
 
 
 @app.route('/img/<path:path>')

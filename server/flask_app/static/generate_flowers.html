@@ -1,0 +1,22 @@
+<html>
+   <body>
+
+      <h3>Generating Flowers</h3>
+      <p>Type the description of the flower and click on submit.</p>
+      <p>Examples:</p>
+      <ul>
+          <li>red flowers (Default)</li>
+          <li>red flowers with blue petals</li>
+          <li>blue flowers with purple stripes</li>
+      </ul>
+
+      <h4>Note: Please don't spam since each image takes 1-5 seconds to generate.</h4>
+
+      <!-- <form action = "http://localhost:4420/api/post/form" method = "POST"> -->
+      <form action = "http://imagination.nitred.com/api/post/flowers" method = "POST">
+         <p>Flower Description <input type = "text" name = "text_description" /></p>
+         <p><input type = "submit" value = "Submit" /></p>
+      </form>
+
+   </body>
+</html>
