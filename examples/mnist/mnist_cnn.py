@@ -3,11 +3,13 @@
 import os
 
 import tensorflow as tf
+from no_imagination.baseops import BaseOps
 from no_imagination.utils import get_project_directory
+from tensorflow.contrib.layers import flatten
 from tensorflow.examples.tutorials.mnist import input_data
 
 
-class CNN(object):
+class CNN(BaseOps):
     """."""
 
     def __init__(self):
@@ -17,25 +19,6 @@ class CNN(object):
         self.__build_model()
         self.__build_accuracy_computation()
         self.__start_session()
-
-    def __weight_variable(self, shape, initializer=tf.truncated_normal_initializer(stddev=0.1)):
-        """."""
-        return tf.get_variable("weights", shape=shape, dtype=tf.float32, initializer=initializer)
-
-    def __bias_variable(self, shape, initializer=tf.constant_initializer(value=0.0)):
-        """."""
-        return tf.get_variable("biases", shape=shape, dtype=tf.float32, initializer=initializer)
-
-    def __conv2d(self, x, weights):
-        """."""
-        return tf.nn.conv2d(input=x, filter=weights, strides=[1, 1, 1, 1], padding="SAME")
-
-    def __max_pool(self, x, window=[2, 2]):
-        """."""
-        return tf.nn.max_pool(x,
-                              ksize=[1, window[0], window[1], 1],
-                              strides=[1, window[0], window[1], 1],
-                              padding="SAME")
 
     def __build_model(self):
         """."""
@@ -48,36 +31,21 @@ class CNN(object):
                 x_image = tf.reshape(self.x, [-1, 28, 28, 1])
 
             with tf.variable_scope("conv1"):
-                # 5x5 filter and 1 channel, 32 filters = 32 output activations
-                W_conv1 = self.__weight_variable([5, 5, 1, 32])
-                b_conv1 = self.__bias_variable([32])
-                # output size 28x28x32 because of "SAME" padding
-                h_conv1 = tf.nn.relu(self.__conv2d(x_image, W_conv1) + b_conv1)
-                # output size 14x14x32 because of max pool window 2x2
-                h_pool1 = self.__max_pool(h_conv1, window=[2, 2])
+                conv1 = self.conv(inputs=x_image, filter=[5, 5, 1], n_filters=32, activation=tf.nn.relu, stride=[1, 1, 1, 1],
+                                  pool=True, pool_stride=[1, 2, 2, 1])
 
             with tf.variable_scope("conv2"):
-                # 5x5 filter, 32 channels from prev layer, 64 output activation
-                W_conv2 = self.__weight_variable([5, 5, 32, 64])
-                b_conv2 = self.__bias_variable([64])
-                # output size 14x14x64
-                h_conv2 = tf.nn.relu(self.__conv2d(h_pool1, W_conv2) + b_conv2)
-                # output size 7x7x64
-                h_pool2 = self.__max_pool(h_conv2, window=[2, 2])
+                conv2 = self.conv(inputs=conv1, filter=[5, 5, 32], n_filters=64, activation=tf.nn.relu, stride=[1, 1, 1, 1],
+                                  pool=True, pool_stride=[1, 2, 2, 1])
 
             with tf.variable_scope("fc1"):
-                W_fc1 = self.__weight_variable([7 * 7 * 64, 1024])
-                b_fc1 = self.__bias_variable([1024])
-                h_pool2_flat = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
-                h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
-                h_fc1_drop = tf.nn.dropout(h_fc1, self.keep_prob)
+                conv2_flat = flatten(conv2)
+                fc1 = self.fc(inputs=conv2_flat, output_dim=1024, activation=tf.nn.relu, keep_prob=self.keep_prob)
 
             with tf.variable_scope("fc2"):
-                W_fc2 = self.__weight_variable([1024, 10])
-                b_fc2 = self.__bias_variable([10])
-                self.y_out = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+                self.y_logit = self.fc(inputs=fc1, output_dim=10, activation="linear", keep_prob=self.keep_prob)
 
-            cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.y_out, labels=self.y))
+            cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.y_logit, labels=self.y))
             optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
             self.train_step = optimizer.minimize(cross_entropy)
 
@@ -85,7 +53,7 @@ class CNN(object):
         """."""
         with self.g.as_default():
             # boolean prediction
-            correct_prediction = tf.equal(tf.argmax(self.y_out, 1), tf.argmax(self.y, 1))
+            correct_prediction = tf.equal(tf.argmax(self.y_logit, 1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     def __start_session(self):
