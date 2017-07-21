@@ -31,11 +31,11 @@ class CNN(BaseOps):
                 x_image = tf.reshape(self.x, [-1, 28, 28, 1])
 
             with tf.variable_scope("conv1"):
-                conv1 = self.conv(inputs=x_image, filter=[5, 5, 1], n_filters=32, activation=tf.nn.relu, stride=[1, 1, 1, 1],
+                conv1 = self.conv(inputs=x_image, filter_shape=[5, 5, 1, 32], activation=tf.nn.relu, stride=[1, 1, 1, 1],
                                   pool=True, pool_stride=[1, 2, 2, 1])
 
             with tf.variable_scope("conv2"):
-                conv2 = self.conv(inputs=conv1, filter=[5, 5, 32], n_filters=64, activation=tf.nn.relu, stride=[1, 1, 1, 1],
+                conv2 = self.conv(inputs=conv1, filter_shape=[5, 5, 32, 64], activation=tf.nn.relu, stride=[1, 1, 1, 1],
                                   pool=True, pool_stride=[1, 2, 2, 1])
 
             with tf.variable_scope("fc1"):
