@@ -84,17 +84,15 @@ class BaseOps(object):
             logger.debug("[{}:fc] fc_shape: {}".format(scope, h_fc.get_shape().as_list()))
             return h_fc
 
-    def conv(self, inputs, filter, n_filters, activation, stride=[1, 1, 1, 1], pool=True, pool_stride=[1, 2, 2, 1]):
+    def conv(self, inputs, filter_shape, activation, stride=[1, 1, 1, 1], pool=False, pool_stride=[1, 2, 2, 1], scope=None):
         """.
 
         Filter Arguments Example:
-        >>> filter = [5, 5, 1]  # 5x5 filter and 1 channel
-        >>> n_filters = 32  # 32 filters or feature maps
-        >>> final_filter_shape = [5, 5, 1, 32]
+        >>> filter_shape = [5, 5, 1, 32]  # 5x5 filter and 1 channel, 32 filters or feature maps
         """
-        with tf.variable_scope("conv"):
-            W_conv = self.__weight_variable(list(filter + [n_filters]))
-            b_conv = self.__bias_variable([n_filters])
+        with tf.variable_scope(scope or "conv"):
+            W_conv = self.__weight_variable(filter_shape)
+            b_conv = self.__bias_variable([filter_shape[-1]])
             output = tf.nn.conv2d(input=inputs, filter=W_conv, strides=stride, padding="SAME")
             output = activation(output + b_conv)
 
