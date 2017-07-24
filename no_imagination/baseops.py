@@ -35,6 +35,8 @@ class BaseOps(object):
     def __max_unpool(pool, ind, ksize=[1, 2, 2, 1], scope='unpool'):
         """.
 
+        Source: https://github.com/tensorflow/tensorflow/issues/2169#issuecomment-315736497
+
         Unpooling layer after max_pool_with_argmax.
 
         Args:
