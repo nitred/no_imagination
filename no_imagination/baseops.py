@@ -101,7 +101,47 @@ class BaseOps(object):
 
             return output
 
-    def deconv(self):
-        """."""
-        with tf.variable_scope("deconv"):
-            pass
+    def deconv(self, inputs, filter_shape_hw, output_shape, activation, stride_hw=[1, 1], unpool=False, unpool_stride=[1, 2, 2, 1], scope=None):
+        """Deconvolution operation.
+
+        filter_shape = [filter_height, filter_width, output_channels, input_channels]
+        The intuition for filter shape is that the deconvolution operation is a `one-to-many` operation:
+        * There are as many operations as there are pixels in the input image.
+        * Every operation is applied on one pixel to yield a filter_output of shape
+            [filter_height, filter_width, output_channels] - which is basically the `one-to-many` operation.
+        * Each pixel contains several `input_channels`.
+        * For each operation (i.e. for each pixel) "n" sub_filter_outputs are generated which are summed up
+            to form the filter_output, where "n" is equal to `input_channels`.
+        * Therefore we need a filter of shape [filter_height, filter_width, output_channels, input_channels]
+        * The filter_outputs from all operations are superimposed/merged together based on the `stride` and
+            `padding` to eventually form the output image.
+
+        Args:
+            inputs (4d-tensor): Usually the output of a convolution or deconvolution operation. The shape of the
+                of the inputs i.e. inputs.shape should be of the form [batch_size or ?, input_height, input_width, input_channels].
+            output_shape (4d-list): The shape of the output which should be of the form [batch_size, output_height, output_width, output_channels].
+            activation (op): ...
+            stride (4d-list): ...
+
+        Returns:
+            4d-tensor: The deconvolution output after ACTIVATION.
+        """
+        logger.debug("[{}:deconv] Entry".format(scope))
+        logger.debug("[{}:deconv] input_shape: {}".format(scope, inputs.get_shape().as_list()))
+        logger.debug("[{}:deconv] output_shape: {}".format(scope, output_shape))
+        assert isinstance(output_shape, list) and len(output_shape) == 4, "output_shape error: {}".format(output_shape)
+        with tf.variable_scope(scope or "deconv"):
+            # if unpool:
+            #     inputs = self.__max_unpool(inputs, ksize=unpool_stride, strides=unpool_stride, padding="SAME")
+            filter_shape = [filter_shape_hw[0], filter_shape_hw[1], output_shape[-1], inputs.get_shape().as_list()[-1]]
+            logger.debug("[{}:deconv] filter_shape: {}".format(scope, filter_shape))
+
+            W_deconv = self.__weight_variable(filter_shape)
+            b_deconv = self.__bias_variable([output_shape[-1]])
+            stride = [1, stride_hw[0], stride_hw[1], 1]
+            deconv = tf.nn.conv2d_transpose(inputs, filter=W_deconv,
+                                            output_shape=output_shape, strides=stride, padding="SAME")
+            deconv = activation(tf.nn.bias_add(deconv, b_deconv))
+            logger.debug("[{}:deconv] deconv_shape: {}".format(scope, deconv.get_shape().as_list()))
+
+            return deconv
