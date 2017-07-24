@@ -35,13 +35,15 @@ class BaseOps(object):
     def __max_unpool(pool, ind, ksize=[1, 2, 2, 1], scope='unpool'):
         """.
 
-           Unpooling layer after max_pool_with_argmax.
-           Args:
-               pool:   max pooled output tensor
-               ind:      argmax indices
-               ksize:     ksize is the same as for the pool
-           Return:
-               unpool:    unpooling tensor
+        Unpooling layer after max_pool_with_argmax.
+
+        Args:
+           pool:   max pooled output tensor
+           ind:      argmax indices
+           ksize:     ksize is the same as for the pool
+
+        Returns:
+           unpool:    unpooling tensor
         """
         with tf.variable_scope(scope):
             input_shape = tf.shape(pool)
