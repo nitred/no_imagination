@@ -1,9 +1,14 @@
 No Imagination relies on third-party software for many functionalities. Their respective complete licence terms can be found below. A summary of their license terms can also be found under the section `Summary of Third Party Licenses`.
 
 # Summary of Third Party Licenses
-* pylogging
-    * Copyright (c) 2016 Ankur Srivastava
-    * https://github.com/ansrivas/pylogging
+* angular2-flask
+    * Copyright (c) 2017 Ankur Srivastava
+    * https://github.com/ansrivas/angular2-flask
+    * MIT License
+
+* DCGAN-tensorflow
+    * Copyright (c) 2016 Taehoon Kim
+    * https://github.com/carpedm20/DCGAN-tensorflow
     * MIT License
 
 * Keras-MNIST-GAN
@@ -11,9 +16,9 @@ No Imagination relies on third-party software for many functionalities. Their re
     * https://github.com/Zackory/Keras-MNIST-GAN
     * MIT License
 
-* angular2-flask
-    * Copyright (c) 2017 Ankur Srivastava
-    * https://github.com/ansrivas/angular2-flask
+* pylogging
+    * Copyright (c) 2016 Ankur Srivastava
+    * https://github.com/ansrivas/pylogging
     * MIT License
 
 
@@ -22,9 +27,11 @@ No Imagination relies on third-party software for many functionalities. Their re
 -----------------------------------------------------------------------------
                         The MIT License (MIT)
         Applies to:
-        - pylogging, Copyright (c) 2016 Ankur Srivastava
-        - Keras-MNIST-GAN, Copyright (c) 2017 Zackory Erickson
         - angular2-flask, Copyright (c) 2017 Ankur Srivastava
+        - DCGAN-tensorflow, Copyright (c) 2016 Taehoon Kim
+        - Keras-MNIST-GAN, Copyright (c) 2017 Zackory Erickson
+        - pylogging, Copyright (c) 2016 Ankur Srivastava
+
 -----------------------------------------------------------------------------
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
