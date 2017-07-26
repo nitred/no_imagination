@@ -105,7 +105,8 @@ class BaseOps(object):
 
             return output
 
-    def deconv(self, inputs, filter_shape_hw, output_shape, activation, stride_hw=[1, 1], unpool=False, unpool_stride=[1, 2, 2, 1], scope=None):
+    def deconv(self, inputs, filter_shape_hw, output_shape, activation, stride_hw=[1, 1],
+               unpool=False, unpool_stride=[1, 2, 2, 1], scope=None, padding="SAME"):
         """Deconvolution operation.
 
         filter_shape = [filter_height, filter_width, output_channels, input_channels]
@@ -144,7 +145,7 @@ class BaseOps(object):
             b_deconv = self.__bias_variable([output_shape[-1]])
             stride = [1, stride_hw[0], stride_hw[1], 1]
             deconv = tf.nn.conv2d_transpose(inputs, filter=W_deconv,
-                                            output_shape=output_shape, strides=stride, padding="SAME")
+                                            output_shape=output_shape, strides=stride, padding=padding)
             deconv = activation(tf.nn.bias_add(deconv, b_deconv))
             logger.debug("[{}:deconv] deconv_shape: {}".format(scope, deconv.get_shape().as_list()))
 
