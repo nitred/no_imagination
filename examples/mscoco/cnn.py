@@ -59,14 +59,35 @@ class CNNPretrained(BaseOps):
                 self.y = tf.placeholder(tf.float32, shape=[None, self.n_categories])
                 self.keep_prob = tf.placeholder(tf.float32)
 
-            with tf.variable_scope("vgg16"):
-                vgg16_npy_path = get_project_file(filename='vgg16.npy', subdirs=['vgg', 'dataset'])
-                vgg16 = Vgg16_Pretrained_Conv(vgg16_npy_path=vgg16_npy_path, vgg_input=self.x)
-                vgg16_pool5 = vgg16.get_pretrained_conv_layer()
+            with tf.variable_scope("conv1"):
+                conv1 = self.conv(inputs=self.x, filter_shape=[5, 5, 3, 32], activation=tf.nn.relu, stride=[1, 1, 1, 1],
+                                  pool=True, pool_stride=[1, 2, 2, 1])
+
+            with tf.variable_scope("conv2"):
+                conv2 = self.conv(inputs=conv1, filter_shape=[5, 5, 32, 64], activation=tf.nn.relu, stride=[1, 1, 1, 1],
+                                  pool=True, pool_stride=[1, 2, 2, 1])
+
+            with tf.variable_scope("conv3"):
+                conv3 = self.conv(inputs=conv2, filter_shape=[5, 5, 64, 128], activation=tf.nn.relu, stride=[1, 1, 1, 1],
+                                  pool=True, pool_stride=[1, 2, 2, 1])
+
+            with tf.variable_scope("conv4"):
+                conv4 = self.conv(inputs=conv3, filter_shape=[5, 5, 128, 256], activation=tf.nn.relu, stride=[1, 1, 1, 1],
+                                  pool=True, pool_stride=[1, 2, 2, 1])
+
+            # with tf.variable_scope("vgg16"):
+            #     vgg16_npy_path = get_project_file(filename='vgg16.npy', subdirs=['vgg', 'dataset'])
+            #     vgg16 = Vgg16_Pretrained_Conv(vgg16_npy_path=vgg16_npy_path, vgg_input=self.x)
+            #     vgg16_pool5 = vgg16.get_pretrained_conv_layer()
+            #
+            # with tf.variable_scope("fc1"):
+            #     vgg16_pool5_flat = flatten(vgg16_pool5)
+            #     fc1 = self.fc(inputs=vgg16_pool5_flat, output_dim=1024,
+            #                   activation=tf.nn.relu, keep_prob=self.keep_prob)
 
             with tf.variable_scope("fc1"):
-                vgg16_pool5_flat = flatten(vgg16_pool5)
-                fc1 = self.fc(inputs=vgg16_pool5_flat, output_dim=2048,
+                conv4_flat = flatten(conv4)
+                fc1 = self.fc(inputs=conv4_flat, output_dim=2048,
                               activation=tf.nn.relu, keep_prob=self.keep_prob)
 
             with tf.variable_scope("fc2"):

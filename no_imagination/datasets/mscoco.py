@@ -128,7 +128,7 @@ def generate_square_images(subset, images_dict, pixels):
             with open(image_dict['path'], 'r+b') as f:
                 with Image.open(f) as image:
                     cover = resizeimage.resize_cover(image, [pixels, pixels, 3])
-                    # cover.save(image_dict['path_{}'.format(pixels)], image.format)
+                    cover.save(image_dict['path_{}'.format(pixels)], image.format)
         except resizeimage.ImageSizeError:
             # print("{},".format(image_dict['id']))
             ignore_ids[ignore_index] = image_dict['id']
@@ -171,12 +171,13 @@ def get_n_random_categories(categories_dict, n_categories):
 
 def get_filtered_image_dict_from_categories(images_dict, categories):
     """."""
+    categories = sorted(categories)
     filtered_images_dict = {}
 
     for key in images_dict.keys():
         image_dict = images_dict[key]
         # Get one intersection
-        intersection_category = list(set(categories).intersection(set(image_dict['categories'])))[:1]
+        intersection_category = sorted(set(categories).intersection(set(image_dict['categories'])))[:1]
         if intersection_category:
             intersection_category = intersection_category[0]
             filtered_images_dict[key] = image_dict
@@ -188,10 +189,15 @@ def get_filtered_image_dict_from_categories(images_dict, categories):
     return filtered_images_dict
 
 
-def get_filtered_mage_dict_for_subset_for_n_categories(subset, n_categories=10):
+def get_filtered_mage_dict_for_subset_for_n_categories(subset, n_categories=10, categories=[]):
     """."""
     images_dict, categories_dict = get_images_and_categories_dict(subset)
-    random_n_categories = get_n_random_categories(categories_dict, n_categories)
+    if not categories:
+        print("Filtering using n_categories: {}".format(n_categories))
+        random_n_categories = get_n_random_categories(categories_dict, n_categories)
+    else:
+        print("Filtering using categories  : {}".format(len(categories)))
+        random_n_categories = categories
     filtered_images_dict = get_filtered_image_dict_from_categories(images_dict, random_n_categories)
     return filtered_images_dict, categories_dict
 
@@ -220,7 +226,7 @@ def add_faulty_images_to_ignore(subset):
     ignore_ids_path = os.path.join(subset_dir, "ignore_ids.pkl")
     ignore_ids_ndim = []
     ignore_ids_exception = []
-    for key in images_dict.keys():
+    for i, key in enumerate(images_dict.keys()):
         image_dict = images_dict[key]
         try:
             img = load_image(image_dict['path_224'])
@@ -228,6 +234,9 @@ def add_faulty_images_to_ignore(subset):
                 ignore_ids_ndim.append(image_dict['id'])
         except Exception as ex:
             ignore_ids_exception.append(image_dict['id'])
+
+        if i % 1000 == 0:
+            print("Iter: {}, Ignored: {}".format(i, len(ignore_ids_ndim + ignore_ids_exception)))
 
     ignore_ids = ignore_ids_ndim + ignore_ids_exception
     if ignore_ids:
@@ -246,14 +255,19 @@ def one_hot_encoding(arr, n_categories):
 class mscoco_generator(object):
     """."""
 
-    def __init__(self, subset='val', n_categories=10, batch_size=32):
+    def __init__(self, subset='val', n_categories=10, categories=[], batch_size=32):
         """."""
         self.subset = subset
         self.n_categories = n_categories
         self.batch_size = batch_size
+        self.categories = sorted(categories)
 
-        self.images_dict, self.categories_dict = get_filtered_mage_dict_for_subset_for_n_categories(
-            self.subset, self.n_categories)
+        if self.categories:
+            self.n_categories = len(self.categories)
+
+        self.images_dict, self.categories_dict = get_filtered_mage_dict_for_subset_for_n_categories(self.subset,
+                                                                                                    self.n_categories,
+                                                                                                    self.categories)
 
         self.batch_generator = self.__generate_batches()
 
@@ -263,7 +277,12 @@ class mscoco_generator(object):
         images_keys = np.array(sorted(self.images_dict.keys()))
 
         # shuffle deterministically
-        np.random.seed(seed=11111)
+        if self.subset == 'val':
+            np.random.seed(seed=11111)
+        elif self.subset == 'train':
+            np.random.seed(seed=22222)
+        else:
+            np.random.seed(seed=33333)
         np.random.shuffle(images_keys)
 
         while True:
@@ -288,6 +307,16 @@ class mscoco_generator(object):
         """."""
         return next(self.batch_generator)
 
+    def test_batch(self, batch_size):
+        """."""
+        temp_batch_size = self.batch_size
+        self.batch_size = batch_size
+        self.reset_generator()
+        test_batch = self.next_batch()
+        self.batch_size = temp_batch_size
+        self.reset_generator()
+        return test_batch
+
     def reset_generator(self):
         """."""
         self.batch_generator = self.__generate_batches()
@@ -305,3 +334,15 @@ class mscoco_generator(object):
                     category_names.append([category_label, category_id, category_name, super_category_name])
                     break
         return category_names
+
+    def get_category_ids(self):
+        """."""
+        category_labels = list(range(self.n_categories))
+        category_ids = []
+        for category_label in category_labels:
+            for key in self.images_dict.keys():
+                if category_label == self.images_dict[key]['chosen_category_label']:
+                    category_id = self.images_dict[key]['chosen_category_id']
+                    category_ids.append(category_id)
+                    break
+        return sorted(category_ids)
