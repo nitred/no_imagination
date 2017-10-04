@@ -2,6 +2,8 @@
 
 This library is released under the MIT License (see LICENSE.txt) and also uses third party libraries that are distributed under their own terms (see LICENSE-3RD-PARTY.txt).
 
+Some libaries don't have any associated licences, these libraries can be found under the `Acknowledgements` section.
+
 
 # Notes & Resources
 
@@ -11,3 +13,7 @@ This library is released under the MIT License (see LICENSE.txt) and also uses t
 * guide: Strided deconvolution [link](https://datascience.stackexchange.com/questions/9222/how-does-strided-deconvolution-works?noredirect=1&lq=1)
 * troubleshoot: Input and output shape incompatibility - padding [link](https://stackoverflow.com/questions/36967872/tensorflow-conv2d-transpose-size-error-number-of-rows-of-out-backprop-doesnt-m)
 * troubleshoot: Input and output shape incompatibility - stride/filter [link](https://stackoverflow.com/questions/35488717/confused-about-conv2d-transpose?noredirect=1&lq=1)
+
+
+# Acknowledgements
+* https://github.com/machrisaa/tensorflow-vgg

@@ -80,7 +80,12 @@ class BaseOps(object):
             w_fc = self.__weight_variable(shape=[input_dim, output_dim])
             b_fc = self.__bias_variable(shape=[output_dim])
             h_fc_logits = tf.matmul(inputs, w_fc) + b_fc
-            h_fc = activation(h_fc_logits)
+            if activation == "linear":
+                h_fc = h_fc_logits
+            elif activation == "leaky_relu":
+                h_fc = self.leaky_relu(h_fc_logits, alpha=0.2)
+            else:
+                h_fc = activation(h_fc_logits)
 
             if keep_prob is not None:
                 h_fc = tf.nn.dropout(h_fc, keep_prob=keep_prob)
