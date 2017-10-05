@@ -38,6 +38,10 @@ Some parts of the model architecture and code used in this section were taken fr
 * Different y for D and G, probably similar to original GAN paper
 * Basic Normalization and scaling of images between -1 and 1
 
+# v5
+* Deconv + batch norm + relu
+* Deconv + batch norm + tanh on last layer
+
 
 
 # To Experiment

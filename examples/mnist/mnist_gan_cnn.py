@@ -50,13 +50,14 @@ class GAN_CNN(BaseOps):
                       activation=self.linear, scope='fc1')
         fc1_folded = tf.reshape(fc1, [-1, 7, 7, 128])
         deconv1 = self.deconv(inputs=fc1_folded, filter_shape_hw=[5, 5], stride_hw=[2, 2],
-                              output_shape=[self.batch_size, 14, 14, 64], activation=self.linear, scope='deconv1')
-        deconv2 = self.deconv(inputs=deconv1, filter_shape_hw=[5, 5], stride_hw=[2, 2],
-                              output_shape=[self.batch_size, 28, 28, 32], activation=self.linear, scope='deconv2')
+                              output_shape=[self.batch_size, 14, 14, 64], activation=self.relu_batch_norm, scope='deconv1')
+
+        # deconv2 = self.deconv(inputs=deconv1, filter_shape_hw=[5, 5], stride_hw=[2, 2],
+        #                       output_shape=[self.batch_size, 28, 28, 32], activation=self.linear, scope='deconv2')
         deconv3 = self.deconv(inputs=deconv1, filter_shape_hw=[5, 5], stride_hw=[2, 2],
-                              output_shape=[self.batch_size, 28, 28, 1], activation=self.linear, scope='deconv3')
+                              output_shape=[self.batch_size, 28, 28, 1], activation=tf.nn.tanh, scope='deconv3')
         deconv3_flat = tf.reshape(deconv3, shape=[-1, output_dim])
-        deconv3_flat = tf.nn.tanh(deconv3_flat, name="deconv3_flat_tanh")
+        # deconv3_flat = tf.nn.tanh(deconv3_flat, name="deconv3_flat_tanh")
         return deconv3_flat
 
         # fc1 = self.fc(inputs=inputs, output_dim=(14 * 14 * 1),
