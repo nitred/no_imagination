@@ -4,9 +4,8 @@ import tensorflow as tf
 from no_imagination.baseops import BaseOps
 from no_imagination.datasets.mscoco import mscoco_generator
 from no_imagination.models.vgg16 import Vgg16_Pretrained_Conv
-from no_imagination.utils import get_project_directory, get_project_file
+from no_imagination.utils import get_project_file
 from tensorflow.contrib.layers import flatten
-from tensorflow.examples.tutorials.mnist import input_data
 
 
 class CNNPretrained(BaseOps):
