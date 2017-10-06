@@ -32,8 +32,8 @@ class BaseOps(object):
     def __batch_norm(self, x):
         return tf.contrib.layers.batch_norm(x, decay=0.9, scale=True, updates_collections=None)
 
-    def relu_batch_norm(self, x):
-        """."""
+    def __get_batch_norm_instance(self):
+        """Return an instance of the batch_norm class that can be __called__."""
         # Taken as is from https://github.com/carpedm20/DCGAN-tensorflow/blob/master/ops.py
         class batch_norm(object):
             """Code modification of http://stackoverflow.com/a/33950177."""
@@ -73,7 +73,16 @@ class BaseOps(object):
                     x, mean, var, self.beta, self.gamma, self.epsilon, scale_after_normalization=True)
 
                 return normed
-        return tf.nn.relu(batch_norm()(x=x))
+
+        return batch_norm()
+
+    def relu_batch_norm(self, x):
+        """."""
+        return tf.nn.relu(self.__get_batch_norm_instance()(x=x))
+
+    def leaky_relu_batch_norm(self, x):
+        """."""
+        return self.leaky_relu(self.__get_batch_norm_instance()(x=x))
 
     def __max_unpool(pool, ind, ksize=[1, 2, 2, 1], scope='unpool'):
         """.
