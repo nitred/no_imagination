@@ -8,6 +8,7 @@ from PIL import Image
 import numpy as np
 import skimage
 import skimage.io
+from no_imagination.datasets.skipthoughts import encode, load_model
 from no_imagination.utils import get_project_directory
 from resizeimage import resizeimage
 
@@ -255,12 +256,16 @@ def one_hot_encoding(arr, n_categories):
 class mscoco_generator(object):
     """."""
 
-    def __init__(self, subset='val', n_categories=10, categories=[], batch_size=32):
+    def __init__(self, subset='val', n_categories=10, categories=[], batch_size=32,
+                 batch_type='labels', image_size=128):
         """."""
         self.subset = subset
         self.n_categories = n_categories
         self.batch_size = batch_size
         self.categories = sorted(categories)
+        self.batch_type = batch_type
+        self.image_size = image_size
+        self.real_batch = True
 
         if self.categories:
             self.n_categories = len(self.categories)
@@ -269,9 +274,12 @@ class mscoco_generator(object):
                                                                                                     self.n_categories,
                                                                                                     self.categories)
 
-        self.batch_generator = self.__generate_batches()
+        if self.batch_type == 'captions':
+            self.skipthoughts_model = load_model()
 
-    def __generate_batches(self):
+        self.batch_generator = self.__generate_batches(image_size=image_size, batch_type=batch_type)
+
+    def __generate_batches(self, image_size=128, batch_type='labels'):
         """."""
         start_index = 0
         images_keys = np.array(sorted(self.images_dict.keys()))
@@ -285,26 +293,56 @@ class mscoco_generator(object):
             np.random.seed(seed=33333)
         np.random.shuffle(images_keys)
 
+        # random batches
+        random_caption_vectors = None
+
         while True:
             batch_indices = range(start_index, start_index + self.batch_size, 1)
             batch_keys = images_keys.take(batch_indices, mode='wrap')
             start_index += self.batch_size
 
-            batch_x = np.empty([self.batch_size, 224, 224, 3])
-            batch_y = np.empty([self.batch_size, 1])
+            batch_x = np.empty([self.batch_size, image_size, image_size, 3])
+            if batch_type == "labels":
+                batch_y = np.empty([self.batch_size, 1])
+            else:
+                batch_captions = []
+                # batch_y = np.empty([self.batch_size, 4800])
 
-            # Load batch
+                # Load batch
             for i, image_key in enumerate(batch_keys):
-                batch_x[i] = load_image(self.images_dict[image_key]['path_224'])
-                batch_y[i] = float(self.images_dict[image_key]['chosen_category_label'])
+                path = "path_128" if image_size == 128 else "path_224"
+                batch_x[i] = load_image(self.images_dict[image_key][path])
+                if batch_type == "labels":
+                    batch_y[i] = float(self.images_dict[image_key]['chosen_category_label'])
+                else:
+                    random_caption = np.random.choice(self.images_dict[image_key]['captions'])
+                    batch_captions.append(random_caption)
+                    # batch_y[i] = encode(self.skipthoughts_model, [random_caption])[0]
 
-            batch_y_one_hot = one_hot_encoding(batch_y.ravel(), self.n_categories)
+            if batch_indices == 'labels':
+                batch_y_one_hot = one_hot_encoding(batch_y.ravel(), self.n_categories)
+                yield batch_x, batch_y_one_hot
+            else:
+                if self.real_batch:
+                    batch_y = encode(self.skipthoughts_model, batch_captions)
+                    if random_caption_vectors is None:
+                        random_caption_vectors = batch_y
+                    else:
+                        # keep updating the random caption vectors
+                        random_vector_indices = np.random.randint(0, high=self.batch_size, size=self.batch_size // 3)
+                        random_caption_indices = np.random.randint(0, high=self.batch_size, size=self.batch_size // 3)
+                        random_caption_vectors[random_caption_indices] = batch_y[random_vector_indices]
+                else:
+                    batch_y = random_caption_vectors
 
-            # Yield batch
-            yield batch_x, batch_y_one_hot
+                yield batch_x, batch_y
 
-    def next_batch(self):
+    def next_batch(self, real=True):
         """."""
+        if real:
+            self.real_batch = True
+        else:
+            self.real_batch = False
         return next(self.batch_generator)
 
     def test_batch(self, batch_size):

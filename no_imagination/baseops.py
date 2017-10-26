@@ -2,6 +2,7 @@
 import logging
 
 import tensorflow as tf
+from tensorflow.contrib.layers import batch_norm
 
 logger = logging.getLogger(__name__)
 
@@ -42,47 +43,56 @@ class BaseOps(object):
                 with tf.variable_scope(name):
                     self.epsilon = epsilon
                     self.momentum = momentum
-
                     self.ema = tf.train.ExponentialMovingAverage(decay=self.momentum)
                     self.name = name
 
             def __call__(self, x, train=True):
                 shape = x.get_shape().as_list()
+                with tf.variable_scope(self.name) as scope:
+                    print(scope.name)
 
-                if train:
-                    with tf.variable_scope(self.name):
-                        self.beta = tf.get_variable("beta", [shape[-1]],
-                                                    initializer=tf.constant_initializer(0.))
-                        self.gamma = tf.get_variable("gamma", [shape[-1]],
-                                                     initializer=tf.random_normal_initializer(1., 0.02))
+                    if train:
+                        with tf.variable_scope(tf.get_variable_scope(), reuse=False):
+                            self.beta = tf.get_variable("beta", [shape[-1]],
+                                                        initializer=tf.constant_initializer(0.))
+                            self.gamma = tf.get_variable("gamma", [shape[-1]],
+                                                         initializer=tf.random_normal_initializer(1., 0.02))
 
-                        try:
-                            batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2], name='moments')
-                        except Exception:
-                            batch_mean, batch_var = tf.nn.moments(x, [0, 1], name='moments')
+                            try:
+                                batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2], name='moments')
+                            except Exception:
+                                batch_mean, batch_var = tf.nn.moments(x, [0, 1], name='moments')
 
-                        ema_apply_op = self.ema.apply([batch_mean, batch_var])
-                        self.ema_mean, self.ema_var = self.ema.average(batch_mean), self.ema.average(batch_var)
+                            ema_apply_op = self.ema.apply([batch_mean, batch_var])
+                            self.ema_mean, self.ema_var = self.ema.average(batch_mean), self.ema.average(batch_var)
 
-                        with tf.control_dependencies([ema_apply_op]):
-                            mean, var = tf.identity(batch_mean), tf.identity(batch_var)
-                else:
-                    mean, var = self.ema_mean, self.ema_var
+                            with tf.control_dependencies([ema_apply_op]):
+                                mean, var = tf.identity(batch_mean), tf.identity(batch_var)
+                    else:
+                        mean, var = self.ema_mean, self.ema_var
 
-                normed = tf.nn.batch_norm_with_global_normalization(
-                    x, mean, var, self.beta, self.gamma, self.epsilon, scale_after_normalization=True)
+                    normed = tf.nn.batch_norm_with_global_normalization(
+                        x, mean, var, self.beta, self.gamma, self.epsilon, scale_after_normalization=True)
 
-                return normed
+                    return normed
 
         return batch_norm()
 
+    def __set_global_batch_norm_instance(self):
+        """."""
+        self.global_batch_norm_instance = self.__get_batch_norm_instance()
+
     def relu_batch_norm(self, x):
         """."""
-        return tf.nn.relu(self.__get_batch_norm_instance()(x=x))
+        # self.__set_global_batch_norm_instance()
+        # batch_norm = self.__get_batch_norm_instance()(x=x)
+        return tf.nn.relu(batch_norm(x))
 
     def leaky_relu_batch_norm(self, x):
         """."""
-        return self.leaky_relu(self.__get_batch_norm_instance()(x=x))
+        # self.__set_global_batch_norm_instance()
+        # batch_norm = self.__get_batch_norm_instance()(x=x)
+        return self.leaky_relu(batch_norm(x))
 
     def __max_unpool(pool, ind, ksize=[1, 2, 2, 1], scope='unpool'):
         """.
@@ -202,3 +212,40 @@ class BaseOps(object):
             logger.debug("[{}:deconv] deconv_shape: {}".format(scope, deconv.get_shape().as_list()))
 
             return deconv
+
+    # Taken from https://github.com/carpedm20/DCGAN-tensorflow/blob/master/ops.py
+    # Taken partially from https://github.com/paarthneekhara/text-to-image/blob/master/model.py
+    def concat_conv_vec_and_cond_vec(self, conv_vec, cond_vec):
+        """Concatenate conditioning vector on feature map axis. Depth concatenation.
+
+        Args:
+            conv_vec (tensor): A convolutional vector.
+                It has the shape [None or batch_size, height, width, n_channels/n_filters].
+            cond_vec (tensor): A conditional vector. Labels, random vector, text embeddings.
+                It has the shape [None or batch_size, cond_vec_dim].
+        """
+        # Validate cond_vec shape.
+        cond_vec_ndim = len(cond_vec.get_shape().as_list())
+        assert cond_vec_ndim == 2, "Conditional vector is expected to be 2D not {}D".format(cond_vec_ndim)
+
+        conv_vec_shape = conv_vec.get_shape()
+        cond_vec_shape = cond_vec.get_shape()
+
+        # Reshape the cond_vec to be like a conv_vec.
+        # The cond_vec is one dimentional (ignoring the batches).
+        # We reshape it in a way that makes the cond_vec stretch out along the filter axis i.e. the last axis.
+        # reshaped_cond_vec = tf.reshape(cond_vec, shape=[cond_vec_shape[0], 1, 1, cond_vec_shape[1]])
+        print(cond_vec_shape)
+        print(tf.shape(cond_vec))
+        print(tf.shape(cond_vec)[0])
+        print(tf.shape(cond_vec)[1])
+        reshaped_cond_vec = tf.reshape(cond_vec, shape=[tf.shape(cond_vec)[0], 1, 1, tf.shape(cond_vec)[1]])
+
+        # Tile the reshaped cond_vec such that it has the same inner dimensions as the inner dimensions of conv_vec.
+        # tiled_cond_vec = tf.tile(reshaped_cond_vec, [1, conv_vec_shape[1], conv_vec_shape[2], 1])
+        tiled_cond_vec = tf.tile(reshaped_cond_vec, [1, tf.shape(conv_vec)[1], tf.shape(conv_vec)[2], 1])
+
+        # Concat the conv_vec to tiled_cond_vec along the filter axis i.e. the last axis.
+        concat_vec = tf.concat([conv_vec, tiled_cond_vec], axis=3)
+
+        return concat_vec
