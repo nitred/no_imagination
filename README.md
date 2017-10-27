@@ -2,7 +2,7 @@
 
 This library is released under the MIT License (see LICENSE.txt) and also uses third party libraries that are distributed under their own terms (see LICENSE-3RD-PARTY.txt).
 
-Some libaries don't have any associated licences, these libraries can be found under the `Acknowledgements` section.
+Some third party libaries that are used don't have any explicit licences as far as I know, these libraries can be found under the `Acknowledgements` section.
 
 
 # Notes & Resources
@@ -16,4 +16,6 @@ Some libaries don't have any associated licences, these libraries can be found u
 
 
 # Acknowledgements
+
+##### Code for Pretrained VGG Model For Tensorflow
 * https://github.com/machrisaa/tensorflow-vgg

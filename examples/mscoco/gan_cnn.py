@@ -38,7 +38,7 @@ class GAN_CNN(BaseOps):
         self.n_channels = 3
         self.captions_dim = 4800
         self.reduced_text_embedding_dim = 256
-        self.d_first_filter_dim = 16
+        self.d_first_filter_dim = 32
         self.g_first_filter_dim = 16
         # self.y_dim = 10
         self.batch_size = batch_size
@@ -85,7 +85,8 @@ class GAN_CNN(BaseOps):
         deconv4 = self.deconv(inputs=deconv3, filter_shape_hw=[5, 5], stride_hw=[2, 2], activation=tf.nn.tanh,
                               output_shape=[self.batch_size, output_h, output_w, output_channels], scope='deconv4')
 
-        return (deconv4 / 2.0) + 0.5
+        # return (deconv4 / 2.0) + 0.5
+        return deconv4
 
     def __build_discriminator(self, images, text_embeddings, keep_prob=None):
         """."""
@@ -257,14 +258,14 @@ class GAN_CNN(BaseOps):
         start_time = time.time()
 
         for i in range(epochs):
-            logger.debug("EPOCH: {}".format(i))
             # Train discriminator
-            real_images, real_captions = self.mscoco.next_batch(real=True)
-            wrong_images, wrong_captions = self.mscoco.next_batch(real=False)
+            for _ in range(5):
+                real_images, real_captions = self.mscoco.next_batch(real=True)
+                wrong_images, wrong_captions = self.mscoco.next_batch(real=False)
 
-            batch_z = self.get_noise_batches(batch_size)
-            self.sess.run([self.opt_D], feed_dict={self.real_images: real_images, self.real_captions: real_captions,
-                                                   self.wrong_images: wrong_images, self.z: batch_z})
+                batch_z = self.get_noise_batches(batch_size)
+                self.sess.run([self.opt_D], feed_dict={self.real_images: real_images, self.real_captions: real_captions,
+                                                       self.wrong_images: wrong_images, self.z: batch_z})
 
             # Train generator
             # real_images, real_captions = self.mscoco.next_batch(real=True)
@@ -273,9 +274,9 @@ class GAN_CNN(BaseOps):
                                                    self.real_captions: real_captions,
                                                    self.z: batch_z})
 
-            self.sess.run([self.opt_G], feed_dict={self.real_images: real_images,
-                                                   self.real_captions: real_captions,
-                                                   self.z: batch_z})
+            # self.sess.run([self.opt_G], feed_dict={self.real_images: real_images,
+            #                                        self.real_captions: real_captions,
+            #                                        self.z: batch_z})
 
             if i % summary_epochs == 0:
                 if not self.std_test_data:
@@ -304,5 +305,5 @@ if __name__ == "__main__":
                  allow_file_logging=True,
                  max_file_size_bytes=10000,
                  change_log_level=None)
-    mnist_gan_mlp = GAN_CNN(z_dim=10, batch_size=16)
+    mnist_gan_mlp = GAN_CNN(z_dim=100, batch_size=16)
     mnist_gan_mlp.run(epochs=10000, summary_epochs=5)

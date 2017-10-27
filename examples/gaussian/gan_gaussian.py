@@ -12,7 +12,7 @@ from pylogging import HandlerType, setup_logger
 Z_DIM = 2
 Z_MUTLIVARIATE_COV = np.diag(np.ones(Z_DIM))
 Z_MUTLIVARIATE_MEAN = np.zeros(Z_DIM)
-x_loc = -2
+x_loc = 0
 x_scale = 1.0
 
 # Training
@@ -124,12 +124,12 @@ sess.run(tf.global_variables_initializer())
 
 plt.ion()
 fig, ax = plt.subplots()
-plt.title("GAN Gaussian")
-plt.xlabel("X Samples")
-plt.ylabel("Probability")
+plt.title("")
+plt.xlabel("")
+plt.ylabel("")
 
 
-def plt_histogram_outline(data, c='r'):
+def plt_histogram_outline(i, data, c='r'):
     ax.set_xlim([-8, 8])
     ax.set_ylim([-0.1, 1.0])
     try:
@@ -137,24 +137,25 @@ def plt_histogram_outline(data, c='r'):
     except Exception:
         pass
     sns.distplot(data, hist=False, ax=ax, color=c)
+    fig.savefig('/home/nitred/.no_imagination/gaussian/exp_0_{}.png'.format(i))
     plt.pause(0.1)
 
 
-def test():
+def test(i):
     # test plot
     z_test = sample_z(1000)
     g_test = sess.run(G, feed_dict={z: z_test})  # for display only
     loss_g_test = sess.run(loss_g, feed_dict={z: z_test})
     print("G_loss: {}".format(loss_g_test))
     if not np.isnan(g_test[0][0]):
-        plt_histogram_outline(g_test)
+        plt_histogram_outline(i, g_test)
     else:
         print("nan {}".format(i))
 
 
 # plot known underlying true distribution of x
 x_true = sample_x(10000)
-plt_histogram_outline(x_true, c='b')
+plt_histogram_outline(0, x_true, c='b')
 
 print("Pre-Training")
 for i in range(epoch_pre_train):
@@ -187,7 +188,7 @@ for i in range(epocs_train):
                                                                      sess.run(batch_g),
                                                                      sess.run(lr_g)))
 
-        test()
+        test(i)
 
 print("Done")
 plt.ioff()

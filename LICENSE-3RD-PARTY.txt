@@ -1,4 +1,4 @@
-No Imagination relies on third-party software for many functionalities. Their respective complete licence terms can be found below. A summary of their license terms can also be found under the section `Summary of Third Party Licenses`.
+No-Imagination relies on third-party software for many functionalities. Their respective complete licence terms can be found below. A summary of their license terms can also be found under the section `Summary of Third Party Licenses`.
 
 # Summary of Third Party Licenses
 * angular2-flask
@@ -21,6 +21,16 @@ No Imagination relies on third-party software for many functionalities. Their re
     * https://github.com/ansrivas/pylogging
     * MIT License
 
+* text-to-image
+    * Copyright (c) 2014 Paarth Neekhara
+    * https://github.com/paarthneekhara/text-to-image
+    * MIT License
+
+* skip-thoughts
+    * Copyright 2015 Ryan Kiros
+    * https://github.com/ryankiros/skip-thoughts
+    * Apache License 2.0
+
 
 
 # Third Party Libraries with MIT License (MIT)
@@ -31,6 +41,7 @@ No Imagination relies on third-party software for many functionalities. Their re
         - DCGAN-tensorflow, Copyright (c) 2016 Taehoon Kim
         - Keras-MNIST-GAN, Copyright (c) 2017 Zackory Erickson
         - pylogging, Copyright (c) 2016 Ankur Srivastava
+        - text-to-image, Copyright (c) 2014 Paarth Neekhara
 
 -----------------------------------------------------------------------------
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -50,3 +61,23 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+# Third Party Libraries with Apache License, Version 2.0
+-----------------------------------------------------------------------------
+                        Apache License, Version 2.0
+        Applies to:
+        - skip-thoughts, Copyright 2015 Ryan Kiros
+
+-----------------------------------------------------------------------------
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

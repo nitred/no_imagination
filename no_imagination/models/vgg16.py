@@ -1,4 +1,4 @@
-"""."""
+"""Edited from the original https://github.com/machrisaa/tensorflow-vgg/blob/master/vgg16.py."""
 import time
 
 import numpy as np

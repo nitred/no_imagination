@@ -78,6 +78,30 @@ class BaseOps(object):
 
         return batch_norm()
 
+    def __get_batch_norm_instance2(self):
+        """Return an instance of the batch_norm class that can be __called__."""
+        # Taken as is from
+        # https://github.com/AshishBora/WassersteinGAN.tensorflow/blob/ef2ff8f336b343b482130a76ea57a72b1f16156f/models/ops.py
+        class batch_norm(object):
+            """."""
+
+            def __init__(self, epsilon=1e-5, momentum=0.9, name="batch_norm"):
+                with tf.variable_scope(name):
+                    self.epsilon = epsilon
+                    self.momentum = momentum
+                    self.name = name
+
+            def __call__(self, x, train=True):
+                return tf.contrib.layers.batch_norm(x,
+                                                    decay=self.momentum,
+                                                    updates_collections=None,
+                                                    epsilon=self.epsilon,
+                                                    scale=True,
+                                                    is_training=train,
+                                                    scope=self.name)
+
+        return batch_norm()
+
     def __set_global_batch_norm_instance(self):
         """."""
         self.global_batch_norm_instance = self.__get_batch_norm_instance()
@@ -85,14 +109,18 @@ class BaseOps(object):
     def relu_batch_norm(self, x):
         """."""
         # self.__set_global_batch_norm_instance()
-        # batch_norm = self.__get_batch_norm_instance()(x=x)
-        return tf.nn.relu(batch_norm(x))
+        batch_norm = self.__get_batch_norm_instance2()(x=x)
+        return tf.nn.relu(batch_norm)
+
+        # return tf.nn.relu(batch_norm(x))
 
     def leaky_relu_batch_norm(self, x):
         """."""
         # self.__set_global_batch_norm_instance()
-        # batch_norm = self.__get_batch_norm_instance()(x=x)
-        return self.leaky_relu(batch_norm(x))
+        batch_norm = self.__get_batch_norm_instance2()(x=x)
+        return self.leaky_relu(batch_norm)
+
+        # return self.leaky_relu(batch_norm(x))
 
     def __max_unpool(pool, ind, ksize=[1, 2, 2, 1], scope='unpool'):
         """.
